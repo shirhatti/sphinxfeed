@@ -1,7 +1,7 @@
 # This application is derived from Dan Mackinlay's sphinxcontrib.feed package.
 # The original can be found at http://bitbucket.org/birkenfeld/sphinx-contrib/src/tip/feed/
 
-import unittest
+
 
 def setup(app):
     """ see: http://sphinx.pocoo.org/ext/appapi.html
@@ -98,10 +98,3 @@ def emit_feed(app, exc):
     builder.info(bold('checking consistency... '), nonl=True)
     builder.env.check_consistency()
     builder.info('done')
-
-## Tests
-
-# ... TODO
-
-if __name__ == '__main__':
-    unittest.main()
