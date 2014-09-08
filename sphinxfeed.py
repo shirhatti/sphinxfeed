@@ -13,11 +13,11 @@ def setup(app):
     app.add_config_value('feed_description', '', '')
     app.add_config_value('feed_author', '', '')
     app.add_config_value('feed_filename', 'rss.xml', 'html')
-    
+
     app.connect('html-page-context', create_feed_item)
     app.connect('build-finished', emit_feed)
     app.connect('builder-inited', create_feed_container)
-    
+
     #env.process_metadata deletes most of the docinfo, and dates
     #in particular.
 
@@ -28,7 +28,7 @@ def create_feed_container(app):
     feed.feed['link'] = app.config.feed_base_url
     feed.feed['author'] = app.config.feed_author
     feed.feed['description'] = app.config.feed_description
-    
+
     if app.config.language:
         feed.feed['language'] = app.config.language
     if app.config.copyright:
@@ -47,18 +47,18 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
         except ValueError:
             date = time.strptime(pubdate, '%Y-%m-%d')
         return date
-    
+
     env = app.builder.env
     metadata = app.builder.env.metadata.get(pagename, {})
-    
+
     if 'Publish Date' not in metadata:
         """ Don't index dateless articles.
             Use the metadata syntax in order to specify the publish data::
-            
+
                 :Publish Date: 2010-01-01
         """
-        return 
-    
+        return
+
     item = {
       'title': ctx.get('title'),
       'link': app.config.feed_base_url + '/' + ctx['current_page_name'] + ctx['file_suffix'],
@@ -70,7 +70,7 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
     env.feed_items[pagename] = item
     #Additionally, we might like to provide our templates with a way to link to the rss output file
     ctx['rss_link'] = app.config.feed_base_url + '/' + app.config.feed_filename
-  
+
 def emit_feed(app, exc):
     import os.path
     ordered_items = app.builder.env.feed_items.values()
@@ -80,11 +80,11 @@ def emit_feed(app, exc):
       reverse=True)
     for item in ordered_items:
         feed.items.append(item)
-    
+
     path = os.path.join(app.builder.outdir,
                         app.config.feed_filename)
     feed.format_rss2_file(path)
-    
+
     from os import path
     from sphinx.application import ENV_PICKLE_FILENAME
     from sphinx.util.console import bold
@@ -93,7 +93,7 @@ def emit_feed(app, exc):
     builder.info(bold('pickling environment... '), nonl=True)
     builder.env.topickle(path.join(builder.doctreedir, ENV_PICKLE_FILENAME))
     builder.info('done')
-    
+
     # global actions
     builder.info(bold('checking consistency... '), nonl=True)
     builder.env.check_consistency()
