@@ -44,33 +44,46 @@ def create_feed_container(app):
     if not hasattr(app.builder.env, 'feed_items'):
         app.builder.env.feed_items = {}
 
+def _get_last_updated(app, pagename):
+    # Use the last modified date from git instead of applying a single
+    # value to the entire site.
+    last_updated = None
+    src_file = app.builder.env.doc2path(pagename)
+    if os.path.exists(src_file):
+        try:
+            last_updated_t = subprocess.check_output(
+                [
+                    'git', 'log', '-n1', '--format=%ad', '--date=short',
+                    '--', src_file,
+                ]
+            ).decode('utf-8').strip()
+            last_updated = time.strptime(last_updated_t, '%Y-%m-%d')
+        except (ValueError, subprocess.CalledProcessError) as e:
+            pass
+    return last_updated
+
 def create_feed_item(app, pagename, templatename, ctx, doctree):
     """ Here we have access to nice HTML fragments to use in, say, an RSS feed.
     """
-    import time
-    def parse_pubdate(pubdate):
-        try:
-            date = time.strptime(pubdate, '%Y-%m-%d %H:%M')
-        except ValueError:
-            date = time.strptime(pubdate, '%Y-%m-%d')
-        return date
-
     env = app.builder.env
     metadata = app.builder.env.metadata.get(pagename, {})
 
-    if 'Publish Date' not in metadata:
-        """ Don't index dateless articles.
-            Use the metadata syntax in order to specify the publish data::
+    pubdate = _get_last_updated(app, pagename)
 
-                :Publish Date: 2010-01-01
-        """
+    if not pubdate:
+        # This file hasn't been checked in or is being generated from
+        # a template rather than a real page. Ignore it.
         return
 
     item = {
-      'title': ctx.get('title'),
-      'link': app.config.feed_base_url + '/' + ctx['current_page_name'] + ctx['file_suffix'],
-      'description': ctx.get('body'),
-      'pubDate': parse_pubdate(metadata['Publish Date'])
+        'title': ctx.get('title'),
+        'link': app.config.feed_base_url + '/' + ctx['current_page_name'] + ctx['file_suffix'],
+        # FIXME(dhellmann): Need to remove the anchor links in the
+        # headers. See tinkerer code for how to do this with pyquery.
+        # FIXME(dhellmann): Should also remove the h1 title from the
+        # body, since it is the title of the feed item.
+        'description': ctx.get('body'),
+        'pubDate': pubdate,
     }
     if 'author' in metadata:
         item['author'] = metadata['author']
