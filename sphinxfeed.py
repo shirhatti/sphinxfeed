@@ -1,6 +1,14 @@
 # This application is derived from Dan Mackinlay's sphinxcontrib.feed package.
 # The original can be found at http://bitbucket.org/birkenfeld/sphinx-contrib/src/tip/feed/
 
+import os.path
+import subprocess
+import time
+
+from feedformatter import Feed
+
+from sphinx.application import ENV_PICKLE_FILENAME
+from sphinx.util.console import bold
 
 
 def setup(app):
@@ -22,7 +30,6 @@ def setup(app):
     #in particular.
 
 def create_feed_container(app):
-    from feedformatter import Feed
     feed = Feed()
     feed.feed['title'] = app.config.project
     feed.feed['link'] = app.config.feed_base_url
@@ -72,7 +79,6 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
     ctx['rss_link'] = app.config.feed_base_url + '/' + app.config.feed_filename
 
 def emit_feed(app, exc):
-    import os.path
     ordered_items = app.builder.env.feed_items.values()
     feed = app.builder.env.feed_feed
     ordered_items.sort(
@@ -85,13 +91,10 @@ def emit_feed(app, exc):
                         app.config.feed_filename)
     feed.format_rss2_file(path)
 
-    from os import path
-    from sphinx.application import ENV_PICKLE_FILENAME
-    from sphinx.util.console import bold
     # save the environment
     builder = app.builder
     builder.info(bold('pickling environment... '), nonl=True)
-    builder.env.topickle(path.join(builder.doctreedir, ENV_PICKLE_FILENAME))
+    builder.env.topickle(os.path.join(builder.doctreedir, ENV_PICKLE_FILENAME))
     builder.info('done')
 
     # global actions
