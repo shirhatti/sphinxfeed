@@ -1,5 +1,7 @@
-# This application is derived from Dan Mackinlay's sphinxcontrib.feed package.
-# The original can be found at http://bitbucket.org/birkenfeld/sphinx-contrib/src/tip/feed/
+# This package is derived from Fergus Doyle's sphinxfeed package,
+# found at https://github.com/junkafarian/sphinxfeed and from Dan
+# Mackinlay's sphinxcontrib.feed package, found at
+# http://bitbucket.org/birkenfeld/sphinx-contrib/src/tip/feed/
 
 import os.path
 import subprocess
@@ -16,7 +18,8 @@ def setup(app):
         this is the primary extension point for Sphinx
     """
     from sphinx.application import Sphinx
-    if not isinstance(app, Sphinx): return
+    if not isinstance(app, Sphinx):
+        return
     app.add_config_value('feed_base_url', '', '')
     app.add_config_value('feed_description', '', '')
     app.add_config_value('feed_author', '', '')
@@ -26,8 +29,6 @@ def setup(app):
     app.connect('build-finished', emit_feed)
     app.connect('builder-inited', create_feed_container)
 
-    #env.process_metadata deletes most of the docinfo, and dates
-    #in particular.
 
 def create_feed_container(app):
     feed = Feed()
@@ -44,12 +45,14 @@ def create_feed_container(app):
     if not hasattr(app.builder.env, 'feed_items'):
         app.builder.env.feed_items = {}
 
+
 def _parse_pubdate(pubdate):
     try:
         date = time.strptime(pubdate, '%Y-%m-%d %H:%M')
     except ValueError:
         date = time.strptime(pubdate, '%Y-%m-%d')
     return date
+
 
 def _get_last_updated(app, pagename):
     # Defaulting to None means the item will not go into the feed.
@@ -74,9 +77,10 @@ def _get_last_updated(app, pagename):
                     ]
                 ).decode('utf-8').strip()
                 last_updated = _parse_pubdate(last_updated_t)
-            except (ValueError, subprocess.CalledProcessError) as e:
+            except (ValueError, subprocess.CalledProcessError):
                 pass
     return last_updated
+
 
 def create_feed_item(app, pagename, templatename, ctx, doctree):
     """ Here we have access to nice HTML fragments to use in, say, an RSS feed.
@@ -93,7 +97,10 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
 
     item = {
         'title': ctx.get('title'),
-        'link': app.config.feed_base_url + '/' + ctx['current_page_name'] + ctx['file_suffix'],
+        'link': (app.config.feed_base_url
+                 + '/'
+                 + ctx['current_page_name']
+                 + ctx['file_suffix']),
         # FIXME(dhellmann): Need to remove the anchor links in the
         # headers. See tinkerer code for how to do this with pyquery.
         # FIXME(dhellmann): Should also remove the h1 title from the
@@ -104,15 +111,18 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
     if 'author' in metadata:
         item['author'] = metadata['author']
     env.feed_items[pagename] = item
-    #Additionally, we might like to provide our templates with a way to link to the rss output file
+    # Additionally, we might like to provide our templates with a way
+    # to link to the rss output file
     ctx['rss_link'] = app.config.feed_base_url + '/' + app.config.feed_filename
+
 
 def emit_feed(app, exc):
     ordered_items = app.builder.env.feed_items.values()
     feed = app.builder.env.feed_feed
     ordered_items.sort(
-      cmp=lambda x,y: cmp(x['pubDate'],y['pubDate']),
-      reverse=True)
+        key=lambda x: x['pubDate'],
+        reverse=True,
+    )
     for item in ordered_items:
         feed.items.append(item)
 

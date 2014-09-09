@@ -3,3 +3,5 @@ AUTHORS
 ChangeLog
 pbr*.egg
 dist
+# Test files
+.tox
