@@ -44,22 +44,38 @@ def create_feed_container(app):
     if not hasattr(app.builder.env, 'feed_items'):
         app.builder.env.feed_items = {}
 
+def _parse_pubdate(pubdate):
+    try:
+        date = time.strptime(pubdate, '%Y-%m-%d %H:%M')
+    except ValueError:
+        date = time.strptime(pubdate, '%Y-%m-%d')
+    return date
+
 def _get_last_updated(app, pagename):
-    # Use the last modified date from git instead of applying a single
-    # value to the entire site.
+    # Defaulting to None means the item will not go into the feed.
     last_updated = None
-    src_file = app.builder.env.doc2path(pagename)
-    if os.path.exists(src_file):
-        try:
-            last_updated_t = subprocess.check_output(
-                [
-                    'git', 'log', '-n1', '--format=%ad', '--date=short',
-                    '--', src_file,
-                ]
-            ).decode('utf-8').strip()
-            last_updated = time.strptime(last_updated_t, '%Y-%m-%d')
-        except (ValueError, subprocess.CalledProcessError) as e:
-            pass
+
+    # Look for an explicit publish date in the metadata for the file.
+    # Use the metadata syntax in order to specify the publish data:
+    #   :Publish Date: 2010-01-01
+    metadata = app.builder.env.metadata.get(pagename, {})
+    if 'Publish Date' in metadata:
+        last_updated = _parse_pubdate(metadata['Publish Date'])
+    else:
+        # Use the last modified date from git instead of applying a single
+        # value to the entire site.
+        src_file = app.builder.env.doc2path(pagename)
+        if os.path.exists(src_file):
+            try:
+                last_updated_t = subprocess.check_output(
+                    [
+                        'git', 'log', '-n1', '--format=%ad', '--date=short',
+                        '--', src_file,
+                    ]
+                ).decode('utf-8').strip()
+                last_updated = _parse_pubdate(last_updated_t)
+            except (ValueError, subprocess.CalledProcessError) as e:
+                pass
     return last_updated
 
 def create_feed_item(app, pagename, templatename, ctx, doctree):
