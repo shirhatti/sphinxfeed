@@ -6,6 +6,7 @@
 import os.path
 import subprocess
 import time
+import re
 
 from feedformatter import Feed
 import pyquery
@@ -24,6 +25,8 @@ def setup(app):
     app.add_config_value('feed_base_url', '', '')
     app.add_config_value('feed_description', '', '')
     app.add_config_value('feed_author', '', '')
+    app.add_config_value('feed_num_items', '', '')
+    app.add_config_value('feed_skip_regex', '', '')
     app.add_config_value('feed_filename', 'rss.xml', 'html')
 
     app.connect('html-page-context', create_feed_item)
@@ -95,8 +98,11 @@ def _clean_feed_item_description(description):
 def create_feed_item(app, pagename, templatename, ctx, doctree):
     """ Here we have access to nice HTML fragments to use in, say, an RSS feed.
     """
-    # We don't care about index pages, so skip them.
-    if pagename.endswith('index'):
+    # If the pagename matches skip regex, skip it. 
+    skip_regex = app.config.feed_skip_regex
+
+    if re.match(pagename, skip_regex):
+        print("Skipping ", pagename)
         return
 
     env = app.builder.env
@@ -127,13 +133,11 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
 
 
 def emit_feed(app, exc):
-    ordered_items = app.builder.env.feed_items.values()
+    all_items = app.builder.env.feed_items.values()
     feed = app.builder.env.feed_feed
-    ordered_items.sort(
-        key=lambda x: x['pubDate'],
-        reverse=True,
-    )
-    for item in ordered_items:
+    num_items = app.config.feed_num_items
+    sorted_items = sorted(all_items, key=lambda x: x['pubDate'], reverse=True)
+    for item in sorted_items[:num_items]:
         feed.items.append(item)
 
     path = os.path.join(app.builder.outdir,
