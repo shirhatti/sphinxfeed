@@ -101,8 +101,8 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
     # If the pagename matches skip regex, skip it. 
     skip_regex = app.config.feed_skip_regex
 
-    if re.match(pagename, skip_regex):
-        print("Skipping ", pagename)
+    if re.match(skip_regex, pagename):
+        print("Skipping in RSS:", pagename)
         return
 
     env = app.builder.env
