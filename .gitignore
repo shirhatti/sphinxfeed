@@ -5,3 +5,5 @@ pbr*.egg
 dist
 # Test files
 .tox
+/build/
+/yasfb.egg-info/
