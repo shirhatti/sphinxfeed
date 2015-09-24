@@ -31,7 +31,7 @@
 
 __version__ = "0.5"
 
-from cStringIO import StringIO
+from io import StringIO
 
 # This "staircase" of import attempts is ugly.  If there's a nicer way to do
 # this, please let me know!
@@ -349,7 +349,7 @@ class Feed:
 
         string = self.format_rss1_string(validate, pretty)
         fp = open(filename, "w")
-        fp.write(string)
+        fp.write(str(string))
         fp.close()
 
     # RSS 2.0 STUFF ------------------------------
@@ -400,7 +400,7 @@ class Feed:
 
         string = self.format_rss2_string(validate, pretty)
         fp = open(filename, "w")
-        fp.write(string)
+        fp.write(str(string))
         fp.close()
 
     # ATOM STUFF ------------------------------
@@ -438,7 +438,7 @@ class Feed:
 
         string = self.format_atom_string(validate, pretty)
         fp = open(filename, "w")
-        fp.write(string)
+        fp.write(str(string))
         fp.close()
 
 class InvalidFeedException(Exception):

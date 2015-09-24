@@ -8,7 +8,7 @@ import subprocess
 import time
 import re
 
-from feedformatter import Feed
+from .feedformatter import Feed
 import pyquery
 
 from sphinx.application import ENV_PICKLE_FILENAME
