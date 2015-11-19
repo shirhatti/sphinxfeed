@@ -109,7 +109,7 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
         'link': (app.config.feed_base_url
                  + '/'
                  + ctx['current_page_name']
-                 + ctx['file_suffix']),
+                 + app.builder.out_suffix,
         'description': ctx.get('body'),
         'pubDate': pubdate,
     }
