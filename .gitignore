@@ -7,3 +7,4 @@ dist
 .tox
 /build/
 /yasfb.egg-info/
+.idea
