@@ -9,7 +9,6 @@ import time
 import re
 
 from .feedformatter import Feed
-import pyquery
 
 from sphinx.application import ENV_PICKLE_FILENAME
 from sphinx.util.console import bold
@@ -85,16 +84,6 @@ def _get_last_updated(app, pagename):
                 pass
     return last_updated
 
-
-def _clean_feed_item_description(description):
-    # Need to remove the anchor links in the headers.  Also remove the
-    # h1 title from the body, since it is the title of the feed item.
-    body = pyquery.PyQuery(description)
-    body.remove('a.headerlink')
-    body.remove('h1')
-    return body.html()
-
-
 def create_feed_item(app, pagename, templatename, ctx, doctree):
     """ Here we have access to nice HTML fragments to use in, say, an RSS feed.
     """
@@ -121,7 +110,7 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
                  + '/'
                  + ctx['current_page_name']
                  + ctx['file_suffix']),
-        'description': _clean_feed_item_description(ctx.get('body')),
+        'description': ctx.get('body'),
         'pubDate': pubdate,
     }
     if 'author' in metadata:
