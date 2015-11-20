@@ -110,7 +110,7 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
                  + '/'
                  + ctx['current_page_name']
                  + '.html'),
-        'description': ctx.get('body'),
+        'description': clean_description(ctx.get('body')),
         'pubDate': pubdate,
     }
     if 'author' in metadata:
@@ -120,6 +120,20 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
     # to link to the rss output file
     ctx['rss_link'] = app.config.feed_base_url + '/' + app.config.feed_filename
 
+def clean_description(body):
+    index = body.index("</h1>") + 5
+    out = body[index:]
+
+    #strip byline
+    out = re.sub("<p>By (.|\n)*?</p>", "", out)
+
+    #remove HTML tags
+    out = re.sub("<.*?>", "", out)
+
+    #truncate to 500 characters
+    out = out[:500]
+
+    return out
 
 def emit_feed(app, exc):
     all_items = app.builder.env.feed_items.values()
