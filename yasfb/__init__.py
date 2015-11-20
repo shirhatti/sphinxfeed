@@ -128,7 +128,7 @@ def clean_description(body):
     out = re.sub("<p>By (.|\n)*?</p>", "", out)
 
     #remove HTML tags
-    out = re.sub("<.*?>|\n", "", out)
+    out = re.sub("<.*?>|\\n|¶", " ", out)
 
     #truncate to 500 characters
     out = out[:200] + '...'
