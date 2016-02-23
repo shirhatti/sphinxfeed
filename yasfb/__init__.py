@@ -111,6 +111,7 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
                  + ctx['current_page_name']
                  + '.html'),
         'description': clean_description(ctx.get('body')),
+        'guid': ctx['current_page_name'],
         'pubDate': pubdate,
     }
     if 'author' in metadata:
@@ -128,7 +129,7 @@ def clean_description(body):
     out = re.sub("<p>By (.|\n)*?</p>", "", out)
 
     #remove HTML tags
-    out = re.sub("<.*?>|\\n|¶", " ", out)
+    out = re.sub("<.*?>|\\n|Â¶", " ", out)
 
     #truncate to 500 characters
     out = out[:200] + '...'
