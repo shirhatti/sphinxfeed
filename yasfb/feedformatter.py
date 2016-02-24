@@ -26,12 +26,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 # Changelog
-# 2015-09-24 v 0.5:  Updated for Python3 and added to yasfb-py3 package. 
+# 2015-09-24 v 0.5:  Updated for Python3 and added to yasfb-py3 package.
 # -- Emre Sahin emre.sahin@teknokrat.com.tr
+
+from io import StringIO
+from time import strftime, localtime, struct_time, timezone, strptime
 
 __version__ = "0.5"
 
-from io import StringIO
 
 # This "staircase" of import attempts is ugly.  If there's a nicer way to do
 # this, please let me know!
@@ -56,8 +58,6 @@ try:
 except ImportError:
     feedformatterCanPrettyPrint = False
 
-from time import strftime, localtime, struct_time, timezone, strptime
-
 # RSS 1.0 Functions ----------
 
 _rss1_channel_mappings = (
@@ -78,7 +78,8 @@ _rss2_channel_mappings = (
     (("title",), "title"),
     (("link", "url"), "link"),
     (("description", "desc", "summary"), "description"),
-    (("pubDate", "pubdate", "date", "published", "updated"), "pubDate", lambda x: _format_datetime("rss2", x)),
+    (("pubDate", "pubdate", "date", "published", "updated"),
+     "pubDate", lambda x: _format_datetime("rss2", x)),
     (("category",), "category"),
     (("language",), "language"),
     (("copyright",), "copyright"),
@@ -93,7 +94,8 @@ _rss2_item_mappings = (
     (("link", "url"), "link"),
     (("description", "desc", "summary"), "description"),
     (("guid", "id"), "guid"),
-    (("pubDate", "pubdate", "date", "published", "updated"), "pubDate", lambda x: _format_datetime("rss2", x)),
+    (("pubDate", "pubdate", "date", "published", "updated"),
+     "pubDate", lambda x: _format_datetime("rss2", x)),
     (("category",), "category"),
     (("author",), "author", lambda x: _rssify_author(x))
 )
@@ -104,7 +106,8 @@ _atom_feed_mappings = (
     (("title",), "title"),
     (("link", "url"), "id"),
     (("description", "desc", "summary"), "subtitle"),
-    (("pubDate", "pubdate", "date", "published", "updated"), "updated", lambda x: _format_datetime("atom", x)),
+    (("pubDate", "pubdate", "date", "published", "updated"),
+     "updated", lambda x: _format_datetime("atom", x)),
     (("category",), "category"),
     (("author",), "author", lambda x: _atomise_author(x))
 )
@@ -114,10 +117,12 @@ _atom_item_mappings = (
     (("link", "url"), "id"),
     (("link", "url"), "link", lambda x: _atomise_link(x)),
     (("description", "desc", "summary"), "summary"),
-    (("pubDate", "pubdate", "date", "published", "updated"), "updated", lambda x: _format_datetime("atom", x)),
+    (("pubDate", "pubdate", "date", "published", "updated"),
+     "updated", lambda x: _format_datetime("atom", x)),
     (("category",), "category"),
     (("author",), "author", lambda x: _atomise_author(x))
 )
+
 
 def _get_tz_offset():
 
@@ -135,6 +140,7 @@ def _get_tz_offset():
     else:
         return "+%02d:%d" % (hours, minutes)
 
+
 def _convert_datetime(time):
 
     """
@@ -148,23 +154,24 @@ def _convert_datetime(time):
     elif type(time) is int or type(time) is float:
         # Assume this is a seconds-since-epoch time
         return localtime(time)
-    elif type(time) is str:    
+    elif type(time) is str:
         if time.isalnum():
             # String is alphanumeric - a time stamp?
             try:
                 return strptime(time, "%a, %d %b %Y %H:%M:%S %Z")
             except ValueError:
-                raise Exception("Unrecongised time format!")        
+                raise Exception("Unrecongised time format!")
         else:
             # Maybe this is a string of an epoch time?
             try:
                 return localtime(float(time))
             except ValueError:
                 # Guess not.
-                raise Exception("Unrecongised time format!")                 
+                raise Exception("Unrecongised time format!")
     else:
         # No idea what this is.  Give up!
         raise Exception("Unrecongised time format!")
+
 
 def _format_datetime(feed_type, time):
 
@@ -173,7 +180,7 @@ def _format_datetime(feed_type, time):
     used in a validly formatted feed of type feed_type.  Raise an
     Exception if this cannot be done.
     """
-    
+
     # First, convert time into a time structure
     time = _convert_datetime(time)
 
@@ -183,13 +190,15 @@ def _format_datetime(feed_type, time):
     elif feed_type is "atom":
         return strftime("%Y-%m-%dT%H:%M:%S", time) + _get_tz_offset()
 
+
 def _atomise_link(link):
 
     if type(link) is dict:
         return dict
     else:
         return {"href": link}
-        
+
+
 def _atomise_author(author):
 
     """
@@ -210,13 +219,14 @@ def _atomise_author(author):
             # Must be a name
             return {"name": author}
 
+
 def _rssify_author(author):
 
     """
     Convert author from whatever it is to a plain old email string for
     use in an RSS 2.0 feed.
     """
-    
+
     if type(author) is dict:
         try:
             return author["email"]
@@ -228,6 +238,7 @@ def _rssify_author(author):
             return author
         else:
             return None
+
 
 def _add_subelems(root_element, mappings, dictionary):
 
@@ -244,8 +255,9 @@ def _add_subelems(root_element, mappings, dictionary):
                 elif len(mapping) == 3:
                     value = mapping[2](dictionary[key])
                 _add_subelem(root_element, mapping[1], value)
-                break                
-    
+                break
+
+
 def _add_subelem(root_element, name, value):
 
     if value is None:
@@ -262,10 +274,12 @@ def _add_subelem(root_element, name, value):
     else:
         ET.SubElement(root_element, name).text = value
 
+
 def _stringify(tree, pretty):
 
     """
-    Turn an ElementTree into a string, optionally with line breaks and indentation.
+    Turn an ElementTree into a string, optionally with line breaks
+    and indentation.
     """
 
     if pretty and feedformatterCanPrettyPrint:
@@ -275,6 +289,7 @@ def _stringify(tree, pretty):
         return string.getvalue()
     else:
         return ET.tostring(tree)
+
 
 class Feed:
 
@@ -299,37 +314,49 @@ class Feed:
 
         # <channel> must contain "title"
         if "title" not in self.feed:
-            raise InvalidFeedException("The channel element of an "
-                                       "RSS 1.0 feed must contain a title subelement")
+            raise InvalidFeedException(
+                "The channel element of an "
+                "RSS 1.0 feed must contain a title subelement"
+            )
 
         # <channel> must contain "link"
         if "link" not in self.feed:
-            raise InvalidFeedException("The channel element of an "
-                                       " RSS 1.0 feeds must contain a link subelement")
+            raise InvalidFeedException(
+                "The channel element of an "
+                " RSS 1.0 feeds must contain a link subelement"
+            )
 
         # <channel> must contain "description"
         if "description" not in self.feed:
-            raise InvalidFeedException("The channel element of an "
-                                       "RSS 1.0 feeds must contain a description subelement")
+            raise InvalidFeedException(
+                "The channel element of an "
+                "RSS 1.0 feeds must contain a description subelement"
+            )
 
         # Each <item> must contain "title" and "link"
         for item in self.items:
             if "title" not in item:
-                raise InvalidFeedException("Each item element in an RSS 1.0 "
-                                           "feed must contain a title subelement")
+                raise InvalidFeedException(
+                    "Each item element in an RSS 1.0 "
+                    "feed must contain a title subelement"
+                )
             if "link" not in item:
-                raise InvalidFeedException("Each item element in an RSS 1.0 "
-                                           "feed must contain a link subelement")
-        
+                raise InvalidFeedException(
+                    "Each item element in an RSS 1.0 "
+                    "feed must contain a link subelement"
+                )
+
     def format_rss1_string(self, validate=True, pretty=False):
 
         """Format the feed as RSS 1.0 and return the result as a string."""
 
         if validate:
             self.validate_rss1()
-        RSS1root = ET.Element('rdf:RDF', 
-                              {"xmlns:rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-                               "xmlns": "http://purl.org/rss/1.0/"})
+        RSS1root = ET.Element(
+                'rdf:RDF',
+                {"xmlns:rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+                 "xmlns": "http://purl.org/rss/1.0/"}
+            )
         RSS1channel = ET.SubElement(RSS1root, 'channel',
                                     {"rdf:about": self.feed["link"]})
         _add_subelems(RSS1channel, _rss1_channel_mappings, self.feed)
@@ -361,24 +388,33 @@ class Feed:
 
         # <channel> must contain "title"
         if "title" not in self.feed:
-            raise InvalidFeedException("The channel element of an "
-                                       "RSS 2.0 feed must contain a title subelement")
+            raise InvalidFeedException(
+                "The channel element of an "
+                "RSS 2.0 feed must contain a title subelement"
+            )
 
         # <channel> must contain "link"
         if "link" not in self.feed:
-            raise InvalidFeedException("The channel element of an "
-                                       " RSS 2.0 feeds must contain a link subelement")
+            raise InvalidFeedException(
+                "The channel element of an "
+                " RSS 2.0 feeds must contain a link subelement"
+            )
 
         # <channel> must contain "description"
         if "description" not in self.feed:
-            raise InvalidFeedException("The channel element of an "
-                                       "RSS 2.0 feeds must contain a description subelement")
+            raise InvalidFeedException(
+                "The channel element of an "
+                "RSS 2.0 feeds must contain a description subelement"
+            )
 
         # Each <item> must contain at least "title" OR "description"
         for item in self.items:
             if not ("title" in item or "description" in item):
-                raise InvalidFeedException("Each item element in an RSS 2.0 "
-                                           "feed must contain at least a title or description subelement")
+                raise InvalidFeedException(
+                    "Each item element in an RSS 2.0 "
+                    "feed must contain at least a title "
+                    "or description subelement"
+                )
 
     def format_rss2_string(self, validate=True, pretty=False):
 
@@ -389,7 +425,7 @@ class Feed:
             RSS2root = ET.Element('rss', {'version': '2.0'})
             RSS2channel = ET.SubElement(RSS2root, 'channel')
         _add_subelems(RSS2channel, _rss2_channel_mappings, self.feed)
-        for item in self.items:            
+        for item in self.items:
             RSS2item = ET.SubElement(RSS2channel, 'item')
             _add_subelems(RSS2item, _rss2_item_mappings, item)
         return _stringify(RSS2root, pretty=pretty)
@@ -415,9 +451,11 @@ class Feed:
         if "author" not in self.feed:
             for entry in self.entries:
                 if "author" not in entry:
-                    raise InvalidFeedException("Atom feeds must have either at "
-                                               "least one author element in the feed element or at least "
-                                               "one author element in each entry element")
+                    raise InvalidFeedException(
+                        "Atom feeds must have either at "
+                        "least one author element in the feed element or at "
+                        "least one author element in each entry element"
+                    )
 
     def format_atom_string(self, validate=True, pretty=False):
 
@@ -441,11 +479,13 @@ class Feed:
         fp.write(str(string))
         fp.close()
 
+
 class InvalidFeedException(Exception):
 
     pass
 
 # FACTORY FUNCTIONS ------------------------------
+
 
 def fromUFP(ufp):
 
@@ -453,13 +493,15 @@ def fromUFP(ufp):
 
 # MAIN ------------------------------
 
+
 def main():
 
     feed = Feed()
     feed.feed["title"] = "Test Feed"
     feed.feed["link"] = "http://code.google.com/p/feedformatter/"
     feed.feed["author"] = "Luke Maurits"
-    feed.feed["description"] = "A simple test feed for the feedformatter project"
+    feed.feed["description"] = ("A simple test feed for "
+                                "the feedformatter project")
     item = {}
     item["title"] = "Test item"
     item["link"] = "http://www.python.org"

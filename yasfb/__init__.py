@@ -84,10 +84,11 @@ def _get_last_updated(app, pagename):
                 pass
     return last_updated
 
+
 def create_feed_item(app, pagename, templatename, ctx, doctree):
     """ Here we have access to nice HTML fragments to use in, say, an RSS feed.
     """
-    # If the pagename matches skip regex, skip it. 
+    # If the pagename matches skip regex, skip it.
     skip_regex = app.config.feed_skip_regex
 
     if re.match(skip_regex, pagename):
@@ -106,10 +107,10 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
 
     item = {
         'title': ctx.get('title'),
-        'link': (app.config.feed_base_url
-                 + '/'
-                 + ctx['current_page_name']
-                 + '.html'),
+        'link': (app.config.feed_base_url +
+                 '/' +
+                 ctx['current_page_name'] +
+                 '.html'),
         'description': clean_description(ctx.get('body')),
         'guid': ctx['current_page_name'],
         'pubDate': pubdate,
@@ -121,20 +122,22 @@ def create_feed_item(app, pagename, templatename, ctx, doctree):
     # to link to the rss output file
     ctx['rss_link'] = app.config.feed_base_url + '/' + app.config.feed_filename
 
+
 def clean_description(body):
     index = body.index("</h1>") + 5
     out = body[index:]
 
-    #strip byline
+    # strip byline
     out = re.sub("<p>By (.|\n)*?</p>", "", out)
 
-    #remove HTML tags
+    # remove HTML tags
     out = re.sub("<.*?>|\\n|¶", " ", out)
 
-    #truncate to 500 characters
+    # truncate to 500 characters
     out = out[:200] + '...'
 
     return out
+
 
 def emit_feed(app, exc):
     all_items = app.builder.env.feed_items.values()
