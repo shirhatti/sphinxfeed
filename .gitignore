@@ -6,5 +6,5 @@ dist
 # Test files
 .tox
 /build/
-/yasfb.egg-info/
+/sphinxfeed.egg-info/
 .idea

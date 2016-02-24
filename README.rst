@@ -1,21 +1,24 @@
-yasfb
-=====
+sphinxfeed
+==========
 
-This Sphinx extension is derived Fergus Doyle's `sphinxfeed
-<https://github.com/junkafarian>`_ which is in turn derived from Dan
-Mackinlay's `sphinxcontrib.feed
-<http://bitbucket.org/birkenfeld/sphinx-contrib/src/tip/feed/>`_
-package.
+This Sphinx extension is derived from Dan Mackinlay's `sphinxcontrib.feed
+<http://bitbucket.org/birkenfeld/sphinx-contrib/src/tip/feed/>`_ package.
+
+This project has received significant contributions from
+`yasfb <https://github.com/dhellmann/yasfb>`_ by Doug Hellman.
+
+It relies on the `feedformatter <http://code.google.com/p/feedformatter/>`_
+package instead of Django utils to generate the feed.
 
 Usage
 -----
 
-#. Install ``yasfb`` using ``easy_install`` / ``pip`` /
+#. Install ``sphinxfeed`` using ``easy_install`` / ``pip`` /
    ``python setup.py install``
 
-#. Add ``yasfb`` to the list of extensions in your ``conf.py``::
+#. Add ``sphinxfeed`` to the list of extensions in your ``conf.py``::
 
-       extensions = [..., 'yasfb']
+       extensions = [..., 'sphinxfeed']
 
 #. Customise the necessary configuration options to correctly generate the
    feed::
@@ -28,4 +31,3 @@ Publishing Dates
 
 Publish dates for feed entries come from either reST metadata embedded
 in the file, or the last git commit date for a file.
-
